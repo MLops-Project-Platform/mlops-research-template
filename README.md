@@ -43,7 +43,6 @@ Make sure MLflow platform is running:
 ```
 http://localhost:5000
 ```
-
 ---
 
 ## Run training
@@ -58,6 +57,14 @@ Or with custom config:
 CONFIG_PATH=configs/default.yaml python src/train.py
 ```
 
+```bash
+docker run --rm \
+  --network docker-compose_default \
+  -v "../mlops-research-template:/workspace" \
+  -w /workspace \
+  -e MLFLOW_TRACKING_URI=http://mlflow:5000 \
+  mlops-training:latest
+```
 ---
 
 ## MLflow conventions

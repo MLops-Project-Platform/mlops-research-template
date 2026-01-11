@@ -17,7 +17,10 @@ def main() -> None:
     config_path = os.getenv("CONFIG_PATH", "configs/default.yaml")
     cfg = load_config(config_path)
 
-    mlflow.set_tracking_uri(cfg["mlflow"]["tracking_uri"])
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", cfg["mlflow"]["tracking_uri"])
+    mlflow.set_tracking_uri(tracking_uri)
+
+    print("MLFLOW_TRACKING_URI =", tracking_uri)
     mlflow.set_experiment(cfg["mlflow"]["experiment_name"])
 
     X, y = load_iris(return_X_y=True)
@@ -58,7 +61,7 @@ def main() -> None:
         acc = accuracy_score(y_test, preds)
         mlflow.log_metric("accuracy", acc)
 
-        mlflow.sklearn.log_model(model, artifact_path="model")
+        mlflow.sklearn.log_model(model, name="model")
 
     print(f"✅ Finished run {run_name} | accuracy={acc:.4f}")
 
