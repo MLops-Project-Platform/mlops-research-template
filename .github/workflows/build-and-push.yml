@@ -13,3 +13,4 @@ jobs:
       dockerfile_path: training-runtime/Dockerfile
     secrets:
       GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # secrets: inherit
