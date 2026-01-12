@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: MLops-Project-Platform/mlops-platform/.github/workflows/build-training-image.yaml@main
+    uses: MLops-Project-Platform/mlops-platform/.github/workflows/build-training-image.yaml@master
     with:
       image_name: mlops-research-template
       dockerfile_path: training-runtime/Dockerfile
