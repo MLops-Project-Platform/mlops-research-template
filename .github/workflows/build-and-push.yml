@@ -7,10 +7,8 @@ on:
 
 jobs:
   build:
-    uses: MLops-Project-Platform/mlops-platform/.github/workflows/build-training-image.yaml@master
+    uses: almog-nachshon/mlops-platform/.github/workflows/build-training-image.yaml@master
     with:
       image_name: mlops-research-template
       dockerfile_path: training-runtime/Dockerfile
-    secrets:
-      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # secrets: inherit
+    secrets: inherit
