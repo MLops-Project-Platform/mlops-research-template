@@ -1,0 +1,54 @@
+name: Build & Push Training Image (using MLOps Platform Dockerfile)
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  PLATFORM_REPO: MLops-Project-Platform/mlops-platform
+  PLATFORM_REF: main
+  PLATFORM_DOCKERFILE_PATH: training-runtime/Dockerfile
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/mlops-training-${{ github.event.repository.name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout research repo (this repo)
+        uses: actions/checkout@v4
+
+      - name: Checkout mlops-platform repo (for Dockerfile)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.PLATFORM_REPO }}
+          ref: ${{ env.PLATFORM_REF }}
+          path: mlops-platform
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: mlops-platform/${{ env.PLATFORM_DOCKERFILE_PATH }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            REPO=${{ github.repository }}
