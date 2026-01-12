@@ -10,10 +10,13 @@ permissions:
   packages: write
 
 env:
+  ORG: mlops-project-platform
   PLATFORM_REPO: MLops-Project-Platform/mlops-platform
   PLATFORM_REF: main
   PLATFORM_DOCKERFILE_PATH: training-runtime/Dockerfile
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/mlops-training-${{ github.event.repository.name }}
+
+  # image name under the ORG in GHCR:
+  IMAGE_NAME: ghcr.io/mlops-project-platform/${{ github.event.repository.name }}
 
 jobs:
   build:
@@ -49,6 +52,3 @@ jobs:
           tags: |
             ${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.IMAGE_NAME }}:latest
-          build-args: |
-            GIT_SHA=${{ github.sha }}
-            REPO=${{ github.repository }}
