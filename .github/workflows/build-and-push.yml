@@ -1,77 +1,15 @@
-name: Build & Push Training Image (tag -> prod/qa/dev suffix)
+name: Build Training Image
 
 on:
   push:
     tags:
       - "v*"
 
-permissions:
-  contents: read
-  packages: write
-
-env:
-  ORG: mlops-project-platform
-  PLATFORM_REPO: MLops-Project-Platform/mlops-platform
-  PLATFORM_REF: main
-  PLATFORM_DOCKERFILE_PATH: training-runtime/Dockerfile
-
-  IMAGE_NAME: ghcr.io/mlops-project-platform/${{ github.event.repository.name }}
-
 jobs:
   build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout research repo (this repo)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # חייב כדי לבדוק איזה branch מכיל את tag commit
-
-      - name: Checkout mlops-platform repo (for Dockerfile)
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.PLATFORM_REPO }}
-          ref: ${{ env.PLATFORM_REF }}
-          path: mlops-platform
-
-      - name: Detect env from tag commit (main/qa/other)
-        id: envdetect
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
-          git fetch --all --tags --prune
-
-          SHA="$(git rev-list -n 1 "$TAG")"
-
-          ENV_NAME="dev"
-          if git branch -r --contains "$SHA" | grep -qE "origin/main$"; then
-            ENV_NAME="prod"
-          elif git branch -r --contains "$SHA" | grep -qE "origin/qa$"; then
-            ENV_NAME="qa"
-          fi
-
-          echo "env_name=$ENV_NAME" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "docker_tag=${TAG}-${ENV_NAME}" >> "$GITHUB_OUTPUT"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & Push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: mlops-platform/${{ env.PLATFORM_DOCKERFILE_PATH }}
-          push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.envdetect.outputs.docker_tag }}
-            ${{ env.IMAGE_NAME }}:${{ steps.envdetect.outputs.env_name }}-latest
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+    uses: MLops-Project-Platform/mlops-platform/.github/workflows/build-training-image.yaml@main
+    with:
+      image_name: mlops-research-template
+      dockerfile_path: training-runtime/Dockerfile
+    secrets:
+      GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
