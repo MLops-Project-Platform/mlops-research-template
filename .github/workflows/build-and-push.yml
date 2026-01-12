@@ -5,10 +5,14 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   build:
     uses: MLops-Project-Platform/mlops-platform/.github/workflows/build-training-image.yaml@main
     with:
-      image_name: mlops-research-template
+      image_name: ${{ github.event.repository.name }}
       dockerfile_path: training-runtime/Dockerfile
     secrets: inherit
