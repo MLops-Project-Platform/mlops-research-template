@@ -1,4 +1,4 @@
-name: Build Training Image
+name: Build Training Image & Update Helm Chart
 
 on:
   push:
@@ -10,9 +10,49 @@ permissions:
   packages: write
 
 jobs:
-  build:
+  # --------------------------------------------------
+  # 1️⃣ Build & Push training image (Reusable Workflow)
+  # --------------------------------------------------
+  build-image:
     uses: MLops-Project-Platform/mlops-platform/.github/workflows/build-training-image.yaml@main
     with:
       image_name: ${{ github.event.repository.name }}
       dockerfile_path: training-runtime/Dockerfile
     secrets: inherit
+
+  # --------------------------------------------------
+  # 2️⃣ Update Helm chart with new tag
+  # --------------------------------------------------
+  update-helm:
+    name: Update Helm chart (trainer-job)
+    needs: build-image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout helm charts repo
+        uses: actions/checkout@v4
+        with:
+          repository: MLops-Project-Platform/mlops-helm-charts
+          ref: main
+          path: charts-repo
+          token: ${{ secrets.GH_PAT }}   # PAT עם write access
+
+      - name: Update values.yaml with new tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_REF_NAME}"   # לדוגמה: v1.0.4-prod
+          FILE="charts-repo/charts/trainer-job/values.yaml"
+
+          echo "Updating Helm values with tag: ${TAG}"
+
+          sed -i "s|^\(\s*tag:\s*\).*|\1${TAG}|" "$FILE"
+          sed -i "s|^\(\s*nameSuffix:\s*\).*|\1${TAG}|" "$FILE"
+
+          git -C charts-repo config user.email "actions@github.com"
+          git -C charts-repo config user.name "github-actions"
+
+          git -C charts-repo add "$FILE"
+          git -C charts-repo commit -m "trainer-job: run ${TAG}" || echo "No changes to commit"
+          git -C charts-repo push
