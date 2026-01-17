@@ -3,9 +3,10 @@ meta:
   owner: research-team
 mlflow:
   tracking_uri: http://localhost:5000
-  experiment_name: iris-sklearn-baseline
+  experiment_name: iris-sklearn-test
 training:
-  test_size: 0.2
-  random_state: 42
-  max_iter: 200
-  C: 1.0
+  test_size: 0.4
+  random_state: 68
+  max_iter: 400
+  C: 1.1
+
